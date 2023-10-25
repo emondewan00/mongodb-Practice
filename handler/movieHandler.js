@@ -77,7 +77,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/movie/:id", async (req, res) => {
   try {
     const movie = await Movie.findById(req.params.id);
     res.status(200).json({
@@ -91,6 +91,7 @@ router.get("/:id", async (req, res) => {
 
 router.get("/movies-stats", async (req, res) => {
   try {
+  
     const stats = await Movie.aggregate([
       { $match: { price: { $gte: 55 } } },
       {
@@ -108,7 +109,9 @@ router.get("/movies-stats", async (req, res) => {
         stats,
       },
     });
-  } catch (error) {}
+  } catch (error) {
+    res.send(error);
+  }
 });
 
 router.get("/movies-by-genres/:genre", async (req, res) => {

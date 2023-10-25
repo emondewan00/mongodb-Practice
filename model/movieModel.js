@@ -76,7 +76,11 @@ movieSchema.pre(/^find/, function () {
   this.find({ releaseDate: { $lte: Date.now() } });
 });
 
-movieSchema.post("aggregate", function (doc) {});
+movieSchema.pre("aggregate", function () {
+  console.log(
+    this.pipeline().unshift({ $match: { releaseDate: { $lte: new Date() } } })
+  );
+});
 
 const Movie = mongoose.model("Movies", movieSchema);
 
