@@ -72,9 +72,11 @@ movieSchema.virtual("durationInHours").get(function () {
   return +(this.duration / 60).toFixed(2);
 });
 
-movieSchema.post("aggregate", function (doc) {
-  console.log(doc);
+movieSchema.pre(/^find/, function () {
+  this.find({ releaseDate: { $lte: Date.now() } });
 });
+
+movieSchema.post("aggregate", function (doc) {});
 
 const Movie = mongoose.model("Movies", movieSchema);
 

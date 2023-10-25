@@ -77,6 +77,18 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const movie = await Movie.findById(req.params.id);
+    res.status(200).json({
+      status: "success",
+      data: {
+        movie,
+      },
+    });
+  } catch (error) {}
+});
+
 router.get("/movies-stats", async (req, res) => {
   try {
     const stats = await Movie.aggregate([
