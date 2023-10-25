@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const Movie = require("../model/movieModel");
 const ApiFeatures = require("../utils/ApiFeatures");
 const router = express.Router();
@@ -7,23 +6,26 @@ const router = express.Router();
 router.post("/", async (req, res) => {
   try {
     const newMovie = await Movie.create(req.body);
-    res.send({
-      status: "Success",
+    res.status(200).json({
+      status: "success",
       data: {
-        movie: newMovie,
+        newMovie,
       },
     });
-  } catch (error) {}
+  } catch (error) {
+    res.send(error);
+  }
 });
 
-router.get("/", async (req, res, next) => {
+router.get("/", async (req, res) => {
   try {
     // const { _order, _sort, fields, page, limit, ...otherQuery } = req.query;
     const movieCount = await Movie.countDocuments();
     let features = new ApiFeatures(Movie.find(), req.query)
       .filter()
       .limitFields()
-      .sort().pagination(movieCount);
+      .sort()
+      .pagination(movieCount);
     //find with document field
     // if (otherQuery) {
     //   let queryStr = JSON.stringify(otherQuery);
@@ -73,6 +75,55 @@ router.get("/", async (req, res, next) => {
   } catch (error) {
     res.send(error);
   }
+});
+
+router.get("/movies-stats", async (req, res) => {
+  try {
+    const stats = await Movie.aggregate([
+      { $match: { price: { $gte: 55 } } },
+      {
+        $group: {
+          _id: "$releaseYear",
+          totalPrice: { $sum: "$price" },
+          movieCount: { $sum: 1 },
+        },
+      },
+    ]);
+    res.status(200).json({
+      status: "success",
+      length: stats.length,
+      data: {
+        stats,
+      },
+    });
+  } catch (error) {}
+});
+
+router.get("/movies-by-genres/:genre", async (req, res) => {
+  try {
+    const moviesByGenres = await Movie.aggregate([
+      { $unwind: { path: "$genres" } },
+      {
+        $group: {
+          _id: "$genres",
+          movieName: { $push: "$name" },
+          movieCount: { $sum: 1 },
+          avgRating: { $avg: "$ratings" },
+          totalPrice: { $sum: "$price" },
+        },
+      },
+      // { $sortByCount: "$avgRating" },
+      { $match: { _id: req.params.genre } },
+    ]);
+    console.log();
+    res.status(200).json({
+      status: "success",
+      length: moviesByGenres.length,
+      data: {
+        moviesByGenres,
+      },
+    });
+  } catch (error) {}
 });
 
 module.exports = router;

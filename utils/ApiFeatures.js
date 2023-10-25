@@ -7,7 +7,6 @@ class ApiFeatures {
     this.page = page;
     this.limit = limit;
     this.filterFields = filterFields;
-    console.log(page, limit);
   }
 
   filter() {
